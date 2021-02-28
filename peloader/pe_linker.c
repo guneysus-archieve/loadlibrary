@@ -92,6 +92,7 @@ static const char *image_directory_name[] = {
 extern struct wrap_export crt_exports[];
 
 uintptr_t LocalStorage[1024] = {0};
+PFLS_CALLBACK_FUNCTION FlsCallbacks[1024] = {0};
 
 static ULONG TlsBitmapData[32];
 static RTL_BITMAP TlsBitmap = {
@@ -474,7 +475,8 @@ static int fix_pe_image(struct pe_image *pe)
                           0);
 
         if (image == MAP_FAILED) {
-                ERROR("failed to mmap desired space for image: %d bytes, image base %p, %m", image_size, pe->opt_hdr->ImageBase);
+                ERROR("failed to mmap desired space for image: %d bytes, image base %#x, %m",
+                    image_size, pe->opt_hdr->ImageBase);
                 return -ENOMEM;
         }
 

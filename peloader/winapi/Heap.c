@@ -51,6 +51,15 @@ STATIC BOOL WINAPI HeapFree(HANDLE hHeap, DWORD dwFlags, PVOID lpMem)
     return TRUE;
 }
 
+STATIC BOOL WINAPI RtlFreeHeap(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress)
+{
+    DebugLog("%p, %#x, %p", HeapHandle, Flags, BaseAddress);
+
+    free(BaseAddress);
+
+    return TRUE;
+}
+
 STATIC SIZE_T WINAPI HeapSize(HANDLE hHeap, DWORD dwFlags, PVOID lpMem)
 {
     return malloc_usable_size(lpMem);
@@ -105,13 +114,43 @@ STATIC PVOID WINAPI RtlAllocateHeap(PVOID HeapHandle,
     return malloc(Size);
 }
 
+STATIC NTSTATUS WINAPI RtlSetHeapInformation(PVOID Heap,
+                                             HEAP_INFORMATION_CLASS HeapInformationClass,
+                                             PVOID HeapInformation,
+                                             SIZE_T HeapInformationLength)
+{
+    DebugLog("%p, %d", Heap, HeapInformationLength);
+    return 0;
+}
+
+STATIC PVOID WINAPI GlobalAlloc(UINT uFlags, SIZE_T uBytes)
+{
+    PVOID Buffer = malloc(uBytes);
+    assert(uFlags == 0);
+
+    DebugLog("%#x, %u => %p", uFlags, uBytes, Buffer);
+
+    return Buffer;
+}
+
+STATIC PVOID WINAPI GlobalFree(PVOID hMem)
+{
+    DebugLog("%p", hMem);
+    free(hMem);
+    return NULL;
+}
+
 DECLARE_CRT_EXPORT("HeapCreate", HeapCreate);
 DECLARE_CRT_EXPORT("GetProcessHeap", GetProcessHeap);
 DECLARE_CRT_EXPORT("HeapAlloc", HeapAlloc);
 DECLARE_CRT_EXPORT("HeapFree", HeapFree);
+DECLARE_CRT_EXPORT("RtlFreeHeap", RtlFreeHeap);
+DECLARE_CRT_EXPORT("RtlSetHeapInformation", RtlSetHeapInformation);
 DECLARE_CRT_EXPORT("HeapSize", HeapSize);
 DECLARE_CRT_EXPORT("HeapReAlloc", HeapReAlloc);
 DECLARE_CRT_EXPORT("LocalAlloc", LocalAlloc);
 DECLARE_CRT_EXPORT("LocalFree", LocalFree);
 DECLARE_CRT_EXPORT("RtlCreateHeap", RtlCreateHeap);
 DECLARE_CRT_EXPORT("RtlAllocateHeap", RtlAllocateHeap);
+DECLARE_CRT_EXPORT("GlobalAlloc", GlobalAlloc);
+DECLARE_CRT_EXPORT("GlobalFree", GlobalFree);
